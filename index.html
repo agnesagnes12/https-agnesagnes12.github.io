@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudyScribe</title>
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    display: flex;
+    height: 100vh;
+    background: #3b82f6; /* blue background */
+    color: white;
+    overflow: hidden;
+}
+.sidebar {
+    width: 260px;
+    background: #1e40af; /* dark blue sidebar */
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+}
+.sidebar h2 {
+    margin-bottom: 5px;
+    font-size: 24px;
+}
+.sidebar p {
+    font-size: 12px;
+    margin-bottom: 10px;
+}
+.sidebar button {
+    padding: 6px;
+    margin-bottom: 6px;
+    border: none;
+    background: #60a5fa;
+    color: white;
+    cursor: pointer;
+    border-radius: 5px;
+}
+.sidebar button:hover { background: #2563eb; }
+.list { flex: 1; overflow-y: auto; margin-top: 10px; }
+.list div { padding: 6px; cursor: pointer; border-radius: 4px; }
+.list div:hover { background: rgba(255,255,255,0.2); }
+.active { background: #2563eb !important; }
+.editor-area { flex: 1; display: flex; flex-direction: column; padding: 10px; }
+.editor { flex: 1; padding: 10px; background: #93c5fd; color: black; outline: none; }
+.toolbar {
+    padding: 10px;
+    background: #1e3a8a;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+.toolbar button {
+    padding: 5px 8px;
+    margin-right: 5px;
+    cursor: pointer;
+    border: none;
+    background: #60a5fa;
+    color: white;
+    border-radius: 4px;
+}
+.toolbar button:hover { background: #2563eb; }
+
+/* quill animation */
+#quill {
+    position: fixed;
+    bottom: 15px;
+    right: 15px;
+    width: 30px;
+    height: 30px;
+    display: none;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin { 0% {transform: rotate(0deg);} 100% {transform: rotate(360deg);} }
+
+/* sidebar image styling */
+#aboutMeImage {
+    width: 100%;
+    border-radius: 6px;
+    margin-top: 5px;
+}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>StudyScr✏be</h2> <!-- pen replaces the i in "Scribe" -->
+    
+    <button onclick="addNotebook()">+ Notebook</button>
+    <button onclick="addSection()">+ Section</button>
+    <button onclick="addPage()">+ Page</button>
+    
+    <div class="list" id="structure"></div>
+
+    <!-- About / founding info below the pages -->
+    <div id="aboutMeSection">
+        <p>Founded in my design class after researching note-taking apps. Hello, my name is agn3z. I'm very fond of taking notes and grammar, so I built this website.</p>
+        <img id="aboutMeImage" src="geico.png" alt="Your Image">
+    </div>
+</div>
+
+<div class="editor-area">
+    <div class="toolbar">
+        <button onclick="formatText('bold')"><b>B</b></button>
+        <button onclick="formatText('italic')"><i>I</i></button>
+        <button onclick="formatText('underline')"><u>U</u></button>
+        <button onclick="formatText('insertUnorderedList')">• List</button>
+        <button onclick="formatText('insertOrderedList')">1. List</button>
+    </div>
+    <div class="editor" id="editor" contenteditable="true">
+        Write your notes here...
+    </div>
+</div>
+
+<!-- small quill icon -->
+<img src="https://i.imgur.com/KXrCzvQ.png" id="quill" alt="quill">
+
+<script>
+// ✅ Per-user data isolation
+if (!localStorage.getItem("studyscribe_data")) {
+    localStorage.setItem("studyscribe_data", JSON.stringify([]));
+}
+
+let data = JSON.parse(localStorage.getItem("studyscribe_data")) || [];
+let current = { notebook: null, section: null, page: null };
+
+function saveData() { localStorage.setItem("studyscribe_data", JSON.stringify(data)); }
+
+function showQuill() {
+    const quill = document.getElementById("quill");
+    quill.style.display = "block";
+    setTimeout(() => { quill.style.display = "none"; }, 800);
+}
+
+function render() {
+    const container = document.getElementById("structure");
+    container.innerHTML = "";
+
+    data.forEach((nb, ni) => {
+        const nbDiv = document.createElement("div");
+        nbDiv.textContent = nb.name;
+        if (current.notebook === ni) nbDiv.classList.add("active");
+        nbDiv.onclick = () => { current = { notebook: ni, section: null, page: null }; renderEditor(); render(); };
+        container.appendChild(nbDiv);
+
+        if (current.notebook === ni) {
+            nb.sections.forEach((sec, si) => {
+                const secDiv = document.createElement("div");
+                secDiv.textContent = "📂 " + sec.name;
+                secDiv.style.paddingLeft = "15px";
+                if (current.section === si) secDiv.classList.add("active");
+                secDiv.onclick = () => { current.section = si; current.page = null; renderEditor(); render(); };
+                container.appendChild(secDiv);
+
+                if (current.section === si) {
+                    sec.pages.forEach((pg, pi) => {
+                        const pgDiv = document.createElement("div");
+                        pgDiv.textContent = "📄 " + pg.name;
+                        pgDiv.style.paddingLeft = "30px";
+                        if (current.page === pi) pgDiv.classList.add("active");
+                        pgDiv.onclick = () => { current.page = pi; renderEditor(); render(); };
+                        container.appendChild(pgDiv);
+                    });
+                }
+            });
+        }
+    });
+}
+
+function renderEditor() {
+    const editor = document.getElementById("editor");
+    if (current.notebook !== null && current.section !== null && current.page !== null) {
+        editor.innerHTML = data[current.notebook].sections[current.section].pages[current.page].content || "";
+    } else { editor.innerHTML = ""; }
+}
+
+function addNotebook() {
+    const name = prompt("Notebook name:"); 
+    if (!name) return;
+    showQuill();
+    data.push({ name, sections: [] });
+    saveData(); render();
+}
+
+function addSection() {
+    if (current.notebook === null){ alert("Select a notebook first."); return; }
+    const name = prompt("Section name:");
+    if (!name) return;
+    showQuill();
+    data[current.notebook].sections.push({ name, pages: [] });
+    saveData(); render();
+}
+
+function addPage() {
+    if (current.notebook === null || current.section === null){ alert("Select a section first."); return; }
+    const name = prompt("Page name:");
+    if (!name) return;
+    showQuill();
+    data[current.notebook].sections[current.section].pages.push({ name, content: "" });
+    saveData(); render();
+}
+
+document.getElementById("editor").addEventListener("input", function() {
+    if(current.notebook !== null && current.section !== null && current.page !== null){
+        data[current.notebook].sections[current.section].pages[current.page].content = this.innerHTML;
+        saveData();
+    }
+});
+
+function formatText(cmd){ document.execCommand(cmd, false, null); }
+
+render();
+</script>
+</body>
+</html>
