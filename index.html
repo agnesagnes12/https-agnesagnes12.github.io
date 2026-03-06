@@ -128,20 +128,32 @@ if (!localStorage.getItem("studyscribe_data")) {
 let data = JSON.parse(localStorage.getItem("studyscribe_data")) || [];
 let current = { notebook: null, section: null, page: null };
 
-// Notes Tips content
+// Notes Tips content - longer with links
 let tipsContent = `
 <h2>StudyScr✏be Note-Taking Guide</h2>
-<p>Helpful tips for writing better notes:</p>
+<p>Helpful tips for writing better notes and staying organized:</p>
 
 <ul>
-<li><b>Keep Notes Short:</b> Focus on key points, not everything word-for-word.</li>
-<li><b>Use Bullet Points:</b> Organize ideas and make them easier to read.</li>
-<li><b>Highlight Important Ideas:</b> Use bold or underline to mark key terms.</li>
-<li><b>Review Your Notes:</b> Go over them after class to clean up and understand.</li>
-<li><b>Organize by Topic:</b> Use notebooks and sections to separate subjects.</li>
+<li><b>Keep Notes Short:</b> Focus on key points, not everything word-for-word. Summarize concepts in your own words.</li>
+<li><b>Use Bullet Points:</b> Organize ideas and make notes easier to read later.</li>
+<li><b>Highlight Important Ideas:</b> Use bold, underline, or colors to mark key terms, dates, or formulas.</li>
+<li><b>Review and Edit Your Notes:</b> After class, go over your notes and clarify anything you don’t understand.</li>
+<li><b>Organize by Topic:</b> Keep notebooks and sections for different subjects to make navigation easier.</li>
+<li><b>Include Examples:</b> Add small examples or diagrams to help you understand concepts better.</li>
+<li><b>Use Abbreviations:</b> Develop your own shorthand to save time while taking notes.</li>
+<li><b>Combine Methods:</b> Mix bullet points, tables, diagrams, or mind maps to suit your learning style.</li>
+<li><b>Stay Consistent:</b> Keep your formatting and structure consistent across all your notes.</li>
 </ul>
 
-<p>Good notes help you remember information better, revise faster, and organize ideas clearly.</p>
+<p>Good notes help you remember information better, revise faster, and organize your ideas clearly. For extra help, check out these useful websites:</p>
+
+<ul>
+<li><a href="https://www.khanacademy.org/" target="_blank" style="color:yellow;">Khan Academy</a> – Free lessons and resources for many subjects.</li>
+<li><a href="https://www.cornell-notes.com/" target="_blank" style="color:yellow;">Cornell Notes Guide</a> – Learn how to use the Cornell note-taking system effectively.</li>
+<li><a href="https://www.ted.com/topics/study+skills" target="_blank" style="color:yellow;">TED Talks – Study Skills</a> – Tips and advice for learning efficiently.</li>
+</ul>
+
+<p>Remember: taking notes is a skill. Practice regularly, keep them organized, and review often to get the most out of your study sessions!</p>
 `;
 
 function saveData() { localStorage.setItem("studyscribe_data", JSON.stringify(data)); }
