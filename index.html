@@ -44,7 +44,7 @@ body {
 .list div:hover { background: rgba(255,255,255,0.2); }
 .active { background: #2563eb !important; }
 .editor-area { flex: 1; display: flex; flex-direction: column; padding: 10px; }
-.editor { flex: 1; padding: 10px; background: #93c5fd; color: black; outline: none; }
+.editor { flex: 1; padding: 10px; background: #93c5fd; color: black; outline: none; overflow-y:auto; }
 .toolbar {
     padding: 10px;
     background: #1e3a8a;
@@ -93,10 +93,13 @@ body {
     
     <div class="list" id="structure"></div>
 
+    <!-- Notes Tips button -->
+    <button onclick="showTips()">📚 Note-Taking Tips</button>
+
     <!-- About / founding info below the pages -->
     <div id="aboutMeSection">
         <p>Founded in my design class after researching note-taking apps. Hello, my name is agn3z. I'm very fond of taking notes and grammar, so I built this website.</p>
-        <img id="aboutMeImage" src="geico.png" alt="Your Image">
+        <img id="aboutMeImage" src="your-image.png" alt="Your Image">
     </div>
 </div>
 
@@ -125,12 +128,34 @@ if (!localStorage.getItem("studyscribe_data")) {
 let data = JSON.parse(localStorage.getItem("studyscribe_data")) || [];
 let current = { notebook: null, section: null, page: null };
 
+// Notes Tips content
+let tipsContent = `
+<h2>StudyScr✏be Note-Taking Guide</h2>
+<p>Helpful tips for writing better notes:</p>
+
+<ul>
+<li><b>Keep Notes Short:</b> Focus on key points, not everything word-for-word.</li>
+<li><b>Use Bullet Points:</b> Organize ideas and make them easier to read.</li>
+<li><b>Highlight Important Ideas:</b> Use bold or underline to mark key terms.</li>
+<li><b>Review Your Notes:</b> Go over them after class to clean up and understand.</li>
+<li><b>Organize by Topic:</b> Use notebooks and sections to separate subjects.</li>
+</ul>
+
+<p>Good notes help you remember information better, revise faster, and organize ideas clearly.</p>
+`;
+
 function saveData() { localStorage.setItem("studyscribe_data", JSON.stringify(data)); }
 
 function showQuill() {
     const quill = document.getElementById("quill");
     quill.style.display = "block";
     setTimeout(() => { quill.style.display = "none"; }, 800);
+}
+
+function showTips() {
+    current = { notebook: null, section: null, page: null }; // deselect everything
+    document.getElementById("editor").innerHTML = tipsContent;
+    render(); // refresh sidebar highlights
 }
 
 function render() {
@@ -172,7 +197,9 @@ function renderEditor() {
     const editor = document.getElementById("editor");
     if (current.notebook !== null && current.section !== null && current.page !== null) {
         editor.innerHTML = data[current.notebook].sections[current.section].pages[current.page].content || "";
-    } else { editor.innerHTML = ""; }
+    } else if(document.getElementById("editor").innerHTML !== tipsContent){
+        editor.innerHTML = ""; // clear editor if nothing selected
+    }
 }
 
 function addNotebook() {
