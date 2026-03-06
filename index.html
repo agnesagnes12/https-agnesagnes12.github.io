@@ -99,7 +99,7 @@ body {
     <!-- About / founding info below the pages -->
     <div id="aboutMeSection">
         <p>Founded in my design class after researching note-taking apps. Hello, my name is agn3z. I'm very fond of taking notes and grammar, so I built this website.</p>
-        <img id="aboutMeImage" src="your-image.png" alt="Your Image">
+        <img id="aboutMeImage" src="geico.png" alt="Your Image">
     </div>
 </div>
 
@@ -127,8 +127,9 @@ if (!localStorage.getItem("studyscribe_data")) {
 
 let data = JSON.parse(localStorage.getItem("studyscribe_data")) || [];
 let current = { notebook: null, section: null, page: null };
+let showTipsMode = false; // tracks if Notes Tips is displayed
 
-// Notes Tips content - longer with links
+// Notes Tips content (read-only)
 let tipsContent = `
 <h2>StudyScr✏be Note-Taking Guide</h2>
 <p>Helpful tips for writing better notes and staying organized:</p>
@@ -164,12 +165,17 @@ function showQuill() {
     setTimeout(() => { quill.style.display = "none"; }, 800);
 }
 
+// Show Notes Tips in read-only mode
 function showTips() {
     current = { notebook: null, section: null, page: null }; // deselect everything
-    document.getElementById("editor").innerHTML = tipsContent;
+    const editor = document.getElementById("editor");
+    editor.innerHTML = tipsContent;
+    editor.setAttribute("contenteditable", "false"); // make read-only
+    showTipsMode = true;
     render(); // refresh sidebar highlights
 }
 
+// Render sidebar
 function render() {
     const container = document.getElementById("structure");
     container.innerHTML = "";
@@ -177,26 +183,42 @@ function render() {
     data.forEach((nb, ni) => {
         const nbDiv = document.createElement("div");
         nbDiv.textContent = nb.name;
-        if (current.notebook === ni) nbDiv.classList.add("active");
-        nbDiv.onclick = () => { current = { notebook: ni, section: null, page: null }; renderEditor(); render(); };
+        if (current.notebook === ni && !showTipsMode) nbDiv.classList.add("active");
+        nbDiv.onclick = () => { 
+            current = { notebook: ni, section: null, page: null };
+            showTipsMode = false;
+            document.getElementById("editor").setAttribute("contenteditable", "true");
+            renderEditor(); render(); 
+        };
         container.appendChild(nbDiv);
 
-        if (current.notebook === ni) {
+        if (current.notebook === ni && !showTipsMode) {
             nb.sections.forEach((sec, si) => {
                 const secDiv = document.createElement("div");
                 secDiv.textContent = "📂 " + sec.name;
                 secDiv.style.paddingLeft = "15px";
                 if (current.section === si) secDiv.classList.add("active");
-                secDiv.onclick = () => { current.section = si; current.page = null; renderEditor(); render(); };
+                secDiv.onclick = () => { 
+                    current.section = si; 
+                    current.page = null; 
+                    showTipsMode = false;
+                    document.getElementById("editor").setAttribute("contenteditable", "true");
+                    renderEditor(); render(); 
+                };
                 container.appendChild(secDiv);
 
-                if (current.section === si) {
+                if (current.section === si && !showTipsMode) {
                     sec.pages.forEach((pg, pi) => {
                         const pgDiv = document.createElement("div");
                         pgDiv.textContent = "📄 " + pg.name;
                         pgDiv.style.paddingLeft = "30px";
                         if (current.page === pi) pgDiv.classList.add("active");
-                        pgDiv.onclick = () => { current.page = pi; renderEditor(); render(); };
+                        pgDiv.onclick = () => { 
+                            current.page = pi; 
+                            showTipsMode = false;
+                            document.getElementById("editor").setAttribute("contenteditable", "true");
+                            renderEditor(); render(); 
+                        };
                         container.appendChild(pgDiv);
                     });
                 }
@@ -205,15 +227,20 @@ function render() {
     });
 }
 
+// Render editor content
 function renderEditor() {
     const editor = document.getElementById("editor");
-    if (current.notebook !== null && current.section !== null && current.page !== null) {
+    if(current.notebook !== null && current.section !== null && current.page !== null){
         editor.innerHTML = data[current.notebook].sections[current.section].pages[current.page].content || "";
-    } else if(document.getElementById("editor").innerHTML !== tipsContent){
-        editor.innerHTML = ""; // clear editor if nothing selected
+        editor.setAttribute("contenteditable", "true");
+        showTipsMode = false;
+    } else if(!showTipsMode) {
+        editor.innerHTML = "";
+        editor.setAttribute("contenteditable", "true");
     }
 }
 
+// Notebook / section / page functions
 function addNotebook() {
     const name = prompt("Notebook name:"); 
     if (!name) return;
@@ -240,6 +267,7 @@ function addPage() {
     saveData(); render();
 }
 
+// Editor input listener
 document.getElementById("editor").addEventListener("input", function() {
     if(current.notebook !== null && current.section !== null && current.page !== null){
         data[current.notebook].sections[current.section].pages[current.page].content = this.innerHTML;
